@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from "three";
-import { useMemo, useRef, type RefObject } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, PerformanceMonitor } from "@react-three/drei";
 import { Bloom, EffectComposer, Noise, ToneMapping, Vignette } from "@react-three/postprocessing";
@@ -198,10 +198,31 @@ function Effects({ tier }: { tier: Tier }) {
   );
 }
 
+/** Phones: draw at most `fps` frames a second, and none once the scene has faded out. */
+function Throttle({ fps }: { fps: number }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    let raf = 0;
+    let last = 0;
+    const loop = (t: number) => {
+      raf = requestAnimationFrame(loop);
+      const asleep = (bench.target?.away ?? 0) > 0.995 && (bench.live?.away ?? 0) > 0.99;
+      if (!asleep && t - last >= 1000 / fps - 2) {
+        last = t;
+        invalidate();
+      }
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [fps, invalidate]);
+  return null;
+}
+
 function Scene({ tier, portal }: { tier: Tier; portal: RefObject<HTMLElement> }) {
   const setDpr = useThree((s) => s.setDpr);
   return (
     <>
+      {tier === "low" && <Throttle fps={30} />}
       <color attach="background" args={["#06080b"]} />
       <fog attach="fog" args={["#06080b", 48, 100]} />
       <PerformanceMonitor onDecline={() => setDpr(1)} />
@@ -229,12 +250,14 @@ export default function BenchCanvas({ tier, portal, onReady }: { tier: Tier; por
   return (
     <Canvas
       dpr={dpr}
+      frameloop={tier === "low" ? "demand" : "always"}
       shadows={tier === "high"}
       gl={{ antialias: tier === "low", powerPreference: "high-performance", stencil: false }}
       camera={{ fov: 30, near: 0.5, far: 260, position: [0, 8.4, 38] }}
       onCreated={({ gl, setFrameloop }) => {
         gl.toneMapping = tier === "low" ? THREE.AgXToneMapping : THREE.NoToneMapping;
         bench.setFrameloop = setFrameloop;
+        bench.capped = tier === "low";
         // Fade the canvas in once the first frames are on screen.
         requestAnimationFrame(() => requestAnimationFrame(() => onReady?.()));
       }}

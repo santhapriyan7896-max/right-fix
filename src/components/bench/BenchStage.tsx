@@ -36,10 +36,11 @@ const subscribeMotion = (cb: () => void) => {
 };
 
 function detectTier(): Tier {
+  // Phones and tablets always get the light version: their GPUs throttle
+  // quickly under post-processing, even when the CPU core count looks high.
   const cores = navigator.hardwareConcurrency ?? 4;
-  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
-  const small = window.matchMedia("(max-width: 767px)").matches || window.matchMedia("(pointer: coarse)").matches;
-  if (small) return mem >= 6 && cores >= 8 ? "mid" : "low";
+  const touch = window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(max-width: 1023px)").matches;
+  if (touch) return "low";
   return cores >= 8 ? "high" : "mid";
 }
 
@@ -203,7 +204,7 @@ export function BenchStage({ children }: { children: ReactNode }) {
         // Sleep the canvas once it has faded out at the bottom of the page.
         const asleep = tmp.away > 0.995 && (bench.live?.away ?? 0) > 0.99;
         const want = asleep ? "demand" : "always";
-        if (bench.setFrameloop && bench.frameloop !== want) {
+        if (bench.setFrameloop && !bench.capped && bench.frameloop !== want) {
           bench.setFrameloop(want);
           bench.frameloop = want;
         }
@@ -304,12 +305,18 @@ export function BenchStage({ children }: { children: ReactNode }) {
       <div className="bench-toggles">
         <button type="button" onClick={toggleSound} aria-pressed={sound} title={sound ? "Turn sound off" : "Turn sound on"}>
           <span className="dot" aria-hidden />
-          <span className="ico" aria-hidden>{sound ? "♪" : "♪̸"}</span>
+          <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+            {sound ? <path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" /> : <path d="m16 9.5 5 5m0-5-5 5" />}
+          </svg>
           <span className="lbl">Sound {sound ? "on" : "off"}</span>
         </button>
         <button type="button" onClick={() => setMotionPref(!motion)} aria-pressed={motion} title={motion ? "Turn motion off" : "Turn motion on"}>
           <span className="dot" aria-hidden />
-          <span className="ico" aria-hidden>{motion ? "◐" : "○"}</span>
+          <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="14" cy="12" r="5" />
+            {motion ? <path d="M3 9h4M2 12h5M3 15h4" /> : <path d="m4 4 16 16" />}
+          </svg>
           <span className="lbl">Motion {motion ? "on" : "off"}</span>
         </button>
       </div>

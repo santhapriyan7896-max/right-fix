@@ -52,7 +52,7 @@ html.lenis body { height: auto; }
 .bench-toggles .dot { width: 6px; height: 6px; border-radius: 50%; background: #3a4552; }
 .bench-toggles button[aria-pressed="true"] { color: var(--color-ink); }
 .bench-toggles button[aria-pressed="true"] .dot { background: var(--color-brand); box-shadow: 0 0 10px var(--color-brand); }
-.bench-toggles .ico { display: none; font-size: 13px; line-height: 1; }
+.bench-toggles .ico { display: none; width: 18px; height: 18px; }
 @media (max-width: 1023px) {
   .bench-toggles { right: auto; left: 12px; bottom: auto; top: 76px; gap: 8px; }
   .bench-toggles button { width: 36px; height: 36px; padding: 0; justify-content: center; }

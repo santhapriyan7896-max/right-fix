@@ -17,6 +17,8 @@ export class ScreenPainter {
   private x: CanvasRenderingContext2D;
   private wall: HTMLCanvasElement;
   private sig = "";
+  /** How often the glitching broken screen redraws (lower on phones). */
+  fps = 12;
   private sans = fontVar("--font-funnel-sans", "sans-serif");
   private disp = fontVar("--font-funnel-display", "sans-serif");
   private mono = fontVar("--font-martian", "monospace");
@@ -68,7 +70,7 @@ export class ScreenPainter {
   }
 
   paint(mode: ScreenMode, p: number, t: number) {
-    const q = mode === "broken" ? Math.floor(t * 12) + Math.round(p * 4) * 1000 : mode === "test" || mode === "ready" ? Math.round(p * 160) : 0;
+    const q = mode === "broken" ? Math.floor(t * this.fps) + Math.round(p * 4) * 1000 : mode === "test" || mode === "ready" ? Math.round(p * 160) : 0;
     const sig = mode + ":" + q;
     if (sig === this.sig) return;
     this.sig = sig;

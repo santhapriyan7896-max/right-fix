@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from "three";
-import { useEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -44,6 +44,8 @@ const HOTSPOTS: { p: [number, number, number]; tip: string }[] = [
   { p: [-1.6, -H / 2 - 0.12, 0], tip: "Speakers and microphones" },
   { p: [0.5, -H / 2 - 0.12, 0], tip: "Charging port" },
 ];
+
+const LabelsOn = createContext(true);
 
 // DOM labels drawn by <Html>. One phone per page, so a module registry is enough.
 const labelEls: Record<string, HTMLDivElement | null> = {};
@@ -156,6 +158,18 @@ function useKit(tier: Tier) {
       cert: glow("#3ddc84", 2.6),
     };
 
+    // Phones: drop the costliest shader features (clearcoat, sheen, iridescence, anisotropy).
+    if (tier === "low") {
+      for (const mat of Object.values(m)) {
+        if (mat instanceof THREE.MeshPhysicalMaterial) {
+          mat.clearcoat = 0;
+          mat.sheen = 0;
+          mat.iridescence = 0;
+          mat.anisotropy = 0;
+        }
+      }
+    }
+
     const boardShape = roundedPoly(
       [[-3.25, 0.95], [3.25, 0.95], [3.25, 3.95], [0.45, 3.95], [0.45, 6.95], [-3.25, 6.95]],
       [0.25, 0.25, 0.25, 0.2, 0.25, 0.75],
@@ -248,6 +262,8 @@ function Label({ portal, n, name, status, tone, labelRef, y = -4.6 }: {
   labelRef: (el: HTMLDivElement | null) => void;
   y?: number;
 }) {
+  // Labels are hidden on phones anyway; skipping them saves per-frame layout work.
+  if (!useContext(LabelsOn)) return null;
   return (
     <Html position={[W / 2 - 1.1, y, 0]} portal={portal} zIndexRange={[24, 21]} style={{ pointerEvents: "none" }}>
       <div ref={labelRef} className="bench-label" style={{ opacity: 0 }}>
@@ -335,6 +351,10 @@ export function Phone({ tier, portal }: { tier: Tier; portal: RefObject<HTMLElem
   const scan = useRef<THREE.Group>(null!);
   const diag = useRef<THREE.Mesh>(null!);
   const cert = useRef<THREE.Mesh>(null!);
+  useEffect(() => {
+    painterOld.fps = tier === "low" ? 5 : 12;
+  }, [tier, painterOld]);
+
   useEffect(() => {
     root.current.traverse((o) => {
       const mesh = o as THREE.Mesh;
@@ -459,6 +479,7 @@ export function Phone({ tier, portal }: { tier: Tier; portal: RefObject<HTMLElem
   });
 
   return (
+    <LabelsOn.Provider value={tier !== "low"}>
     <group ref={root}>
       {/* 07 back glass, camera bump and lenses */}
       <group ref={back}>
@@ -605,5 +626,6 @@ export function Phone({ tier, portal }: { tier: Tier; portal: RefObject<HTMLElem
         </Html>
       ))}
     </group>
+    </LabelsOn.Provider>
   );
 }

@@ -55,6 +55,8 @@ export const bench = {
   wrapper: null as HTMLElement | null,
   setFrameloop: null as null | ((mode: "always" | "demand" | "never") => void),
   frameloop: "always" as "always" | "demand" | "never",
+  /** Phones: frames are paced by a 30fps throttle instead of the sleep switch. */
+  capped: false,
   /** Development only: force a scene key instead of following scroll. */
   debug: null as string | null,
 };
