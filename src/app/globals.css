@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Cool, low-saturation neutrals (calm, technical); warm amber marks faults;
+     green marks "fixed / OK". Contrast kept high for fast, credible reading. */
+  --color-paper: #06080b;
+  --color-card: #0d1015;
+  --color-sand: #141920;
+  --color-ink: #eef1f4;
+  --color-ink-2: #aab3bd;
+  --color-muted: #7f8994;
+  --color-line: #1b2129;
+  --color-line-2: #29313b;
+  --color-brand: #3ddc84;
+  --color-brand-dark: #0f3a24;
+  --color-brand-soft: #0f2a1b;
+  --color-amber: #ff8a3d;
+  --color-amber-soft: #2a1408;
+
+  --font-sans: var(--font-funnel-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-funnel-display), var(--font-funnel-sans), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
+
+  --radius-card: 14px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  color-scheme: dark;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
+
+/* Martian Mono is wide by default; a narrower cut reads better at small sizes. */
+.font-mono,
+.eyebrow,
+.bench-hud,
+.bench-toggles button,
+.bench-label,
+.step-time,
+.readout,
+.scroll-cue,
+.promise small {
+  font-stretch: 84%;
+}
+
+::selection {
+  background: var(--color-brand);
+  color: var(--color-paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@layer components {
+  .wrap {
+    @apply mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8;
+  }
+  .eyebrow {
+    @apply font-mono text-[12px] uppercase tracking-[0.08em] text-muted;
+  }
+  .h1 {
+    @apply text-[2.3rem] leading-[1.05] font-semibold tracking-[-0.03em] text-ink sm:text-[3.4rem] lg:text-[4rem];
+  }
+  .h2 {
+    @apply text-[1.75rem] leading-[1.1] font-semibold tracking-[-0.025em] text-ink sm:text-[2.4rem];
+  }
+  .h3 {
+    @apply text-[1.15rem] leading-snug font-semibold tracking-[-0.01em] text-ink;
+  }
+  .lead {
+    @apply text-[1.05rem] leading-relaxed text-ink-2 sm:text-[1.15rem];
+  }
+  .btn-primary,
+  .btn-secondary {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-medium whitespace-nowrap transition-colors duration-150;
+  }
+  .btn-primary {
+    @apply bg-ink text-paper hover:bg-white;
+  }
+  .btn-secondary {
+    @apply border border-line-2 bg-card text-ink hover:border-ink;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-1.5 text-[15px] font-medium text-brand underline-offset-4 hover:underline;
+  }
+  .card {
+    @apply rounded-[var(--radius-card)] border border-line bg-card;
+  }
+  .field {
+    @apply h-12 w-full rounded-xl border border-line-2 bg-card px-4 text-[15px] text-ink placeholder:text-muted/70 focus:border-brand focus:outline-none;
+  }
+  .label {
+    @apply mb-1.5 block text-[14px] font-medium text-ink;
+  }
 }
